@@ -85,7 +85,15 @@ def test_network():
         return jsonify({"status": response.status_code})
     except Exception as e:
         return jsonify({"error": str(e)})
-
+        
+@app.route("/check-youtube")
+def check_youtube():
+    import requests
+    try:
+        response = requests.get("https://www.youtube.com", timeout=10)
+        return jsonify({"status": response.status_code})
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
