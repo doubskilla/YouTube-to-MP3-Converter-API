@@ -1,0 +1,16 @@
+{
+  "name": "youtube-to-mp3-converter-api",
+  "version": "1.0.0",
+  "description": "A simple API to convert YouTube videos to MP3",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Ton Nom",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "cheerio": "^1.0.0-rc.10",
+    "express": "^4.17.1"
+  }
+}
