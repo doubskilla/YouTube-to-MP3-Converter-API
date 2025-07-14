@@ -76,6 +76,17 @@ def transcribe():
         traceback_str = traceback.format_exc()
         print("❌ ERREUR DÉTAILLÉE :", traceback_str)
         return jsonify({"error": str(e)}), 500
+        from flask import Flask, jsonify
+
+@app.route("/test-network")
+def test_network():
+    import requests
+    try:
+        response = requests.get("https://www.youtube.com", timeout=10)
+        return jsonify({"status": response.status_code})
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
