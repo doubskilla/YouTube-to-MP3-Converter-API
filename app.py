@@ -7,54 +7,63 @@ import traceback
 app = Flask(__name__)
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-WHISPER_ENDPOINT = "https://api.openai.com/v1/audio/transcriptions"
+OPENAI_WHISPER_ENDPOINT = "https://api.openai.com/v1/audio/transcriptions"
 
 @app.route("/transcribe", methods=["POST"])
 def transcribe():
     try:
-        print("📥 Fichier reçu")
+        print("🚀 Requête reçue dans /transcribe")
+
+        # Vérifie qu'un fichier a été uploadé
         if 'file' not in request.files:
-            return jsonify({"error": "Aucun fichier fourni"}), 400
+            return jsonify({"error": "Aucun fichier MP3 reçu."}), 400
 
-        audio_file = request.files['file']
+        file = request.files['file']
+        if file.filename == "":
+            return jsonify({"error": "Nom de fichier vide."}), 400
+
+        # Sauvegarde temporairement le fichier
         filename = f"{uuid.uuid4()}.mp3"
-        audio_file.save(filename)
-        print("✅ Audio sauvegardé :", filename)
+        file.save(filename)
+        print("✅ Fichier reçu et sauvegardé :", filename)
 
-        print("📤 Envoi vers Whisper...")
+        # Envoi à OpenAI Whisper API
         with open(filename, "rb") as f:
             files = {
                 "file": (filename, f, "audio/mpeg")
             }
-            data = {
+            data_whisper = {
                 "model": "whisper-1"
             }
             headers = {
                 "Authorization": f"Bearer {OPENAI_API_KEY}"
             }
             response = requests.post(
-                WHISPER_ENDPOINT,
+                OPENAI_WHISPER_ENDPOINT,
                 headers=headers,
-                data=data,
+                data=data_whisper,
                 files=files
             )
 
+        # Supprime le fichier temporaire
         os.remove(filename)
 
+        # Vérifie la réponse de l'API
         if response.status_code != 200:
-            print("❌ Whisper API erreur :", response.text)
-            return jsonify({"error": "Whisper API a échoué", "details": response.text}), 500
+            print("❌ Whisper API a échoué :", response.text)
+            return jsonify({
+                "error": "Whisper API a échoué",
+                "details": response.text
+            }), 500
 
         transcription = response.json().get("text", "")
+        print("📝 Transcription terminée !")
         return jsonify({"transcription": transcription})
 
     except Exception as e:
-        print("❌ ERREUR GÉNÉRALE :", traceback.format_exc())
+        traceback_str = traceback.format_exc()
+        print("❌ ERREUR :", traceback_str)
         return jsonify({"error": str(e)}), 500
-
-@app.route("/")
-def home():
-    return "API de transcription active"
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
